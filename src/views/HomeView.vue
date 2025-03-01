@@ -6,8 +6,15 @@
         <Plus class="w-4 h-4" />
       </button>
     </div>
+    <div class="mb-4 bg-blue-50 rounded-md flex items-center">
+      <Question class="w-6 h-6 ml-2"/>
+      <p class="p-2">
+        Для указания нескольких меток для одной пары логин/пароль используйте разделитель ;
+      </p>
+    </div>
   </main>
 </template>
 <script setup lang="ts">
 import Plus from "@/components/Icons/Plus.vue";
+import Question from "@/components/Icons/Question.vue";
 </script>
