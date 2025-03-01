@@ -25,7 +25,7 @@
            v-if="accountStore.accounts.length > 0">
           <div class="flex flex-col">
             <InputText
-                :value="tagsToString(account.tags)"
+                v-model="account.tagsString"
                 @blur="handleTagsChange(account, $event)"
                 placeholder="Введите метки через ;"
                 class="w-full"
@@ -175,6 +175,7 @@ const handleTagsChange = (account: Account, event: Event) => {
 
   const updatedAccount = { ...account, tags: processTags(tagsString) };
   accountStore.updateAccount(updatedAccount);
+  validateAccount(updatedAccount);
 };
 
 const handleTypeChange = (account: Account, type: AccountType) => {
