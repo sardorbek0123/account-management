@@ -20,12 +20,13 @@
         <div>Пароль</div>
         <div class="text-center">Действия</div>
       </div>
-      <div class="grid grid-cols-[1fr_1fr_1fr_1fr_100px] gap-4 p-4 border-t border-gray-200"
+      <div class="grid grid-cols-[1fr_1fr_1fr_1fr_100px] items-center gap-4 p-4 border-t border-gray-200"
            v-for="account in accountStore.accounts"
            v-if="accountStore.accounts.length > 0">
           <div class="flex flex-col">
             <InputText
                 :value="tagsToString(account.tags)"
+                @blur="handleTagsChange(account, $event)"
                 placeholder="Введите метки через ;"
                 class="w-full"
             />
@@ -37,6 +38,7 @@
                 :options="accountTypes"
                 optionLabel="label"
                 optionValue="value"
+                @change="handleTypeChange(account, account.type)"
                 class="w-full"
             />
           </div>
@@ -44,11 +46,12 @@
           <div class="flex flex-col">
             <InputText
                 v-model="account.login"
+                @blur="handleLoginChange(account, $event)"
                 placeholder="Введите логин"
                 :class="{ 'p-invalid': errors[account.id]?.login }"
                 class="w-full"
+                :error="errors[account.id]?.login"
             />
-            <small v-if="errors[account.id]?.login" class="text-red-500 text-xs mt-1">{{ errors[account.id]?.login }}</small>
           </div>
 
           <div class="flex flex-col">
@@ -56,16 +59,17 @@
                 v-if="account.type === 'Локальная'"
                 v-model="account.password"
                 type="password"
+                @blur="handlePasswordChange(account, $event)"
                 placeholder="Введите пароль"
                 :class="{ 'p-invalid': errors[account.id]?.password }"
                 class="w-full"
+                :error="errors[account.id]?.password"
             />
-            <small v-if="errors[account.id]?.password" class="text-red-500 text-xs mt-1">{{ errors[account.id]?.password }}</small>
           </div>
 
           <div class="flex justify-center items-center">
             <button  @click="deleteAccount(account.id)">
-              <Trash class="w-4 h-4 text-red-500" />
+              <Trash class="w-6 h-6 text-red-500" />
             </button>
           </div>
       </div>
@@ -122,5 +126,93 @@ const addNewAccount = () => {
 
 const deleteAccount = (id: string) => {
   accountStore.deleteAccount(id);
+};
+
+const processTags = (tagsString: string): Tag[] => {
+  if (!tagsString) return [];
+
+  return tagsString.split(';')
+      .map(tag => tag.trim())
+      .filter(tag => tag !== '')
+      .map(tag => ({ text: tag }));
+};
+
+const validateAccount = (account: Account): boolean => {
+  const accountErrors: AccountFormErrors = {};
+  let isValid = true;
+
+  if (!account.login.trim()) {
+    accountErrors.login = 'Логин обязателен';
+    isValid = false;
+  } else if (account.login.length > 100) {
+    accountErrors.login = 'Максимум 100 символов';
+    isValid = false;
+  }
+
+  if (account.type === 'Локальная') {
+    if (!account.password) {
+      accountErrors.password = 'Пароль обязателен';
+      isValid = false;
+    } else if (account.password.length > 100) {
+      accountErrors.password = 'Максимум 100 символов';
+      isValid = false;
+    }
+  }
+
+  errors.value[account.id] = accountErrors;
+  return isValid;
+};
+
+
+const handleTagsChange = (account: Account, event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const tagsString = input.value;
+
+  if (tagsString.length > 50) {
+    input.value = tagsString.substring(0, 50);
+    return;
+  }
+
+  const updatedAccount = { ...account, tags: processTags(tagsString) };
+  accountStore.updateAccount(updatedAccount);
+};
+
+const handleTypeChange = (account: Account, type: AccountType) => {
+  const updatedAccount = {
+    ...account,
+    type,
+    password: type === 'LDAP' ? null : (account.password || '')
+  };
+
+  accountStore.updateAccount(updatedAccount);
+  validateAccount(updatedAccount);
+};
+
+const handleLoginChange = (account: Account, event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const login = input.value;
+
+  if (login.length > 100) {
+    input.value = login.substring(0, 100);
+    return;
+  }
+
+  const updatedAccount = { ...account, login };
+  accountStore.updateAccount(updatedAccount);
+  validateAccount(updatedAccount);
+};
+
+const handlePasswordChange = (account: Account, event: Event) => {
+  const input = event.target as HTMLInputElement;
+  const password = input.value;
+
+  if (password.length > 100) {
+    input.value = password.substring(0, 100);
+    return;
+  }
+
+  const updatedAccount = { ...account, password };
+  accountStore.updateAccount(updatedAccount);
+  validateAccount(updatedAccount);
 };
 </script>

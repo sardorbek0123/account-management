@@ -1,5 +1,5 @@
 <template>
-  <div class="flex flex-col w-full">
+  <div class="flex flex-col w-full relative">
     <input
         :type="type"
         :value="inputValue"
@@ -8,7 +8,7 @@
         :placeholder="placeholder"
         :class="['w-full px-3 py-2 border rounded-lg focus:outline-none', error ? 'border-red-500' : 'border-gray-300']"
     />
-    <small v-if="error" class="text-red-500 text-xs mt-1">{{ error }}</small>
+    <small v-if="error" class="text-red-500 text-xs mt-1 absolute top-9">{{ error }}</small>
   </div>
 </template>
 
